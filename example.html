@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Scailable WASI example</title>
+</head>
+
+<body>
+
+<h1>Scailable webnode example</h1>
+
+<p>Simple demo page for running a Scailable task either locally (in the browser), or remotely. See <a href="https://github.com/scailable/sclbl-webnode">https://github.com/scailable/sclbl-webnode</a> for details.</p>
+
+<p>
+	<b>Compute-function ID: </b> <input type="text" name="cfid" id="compute-function-id" value="27d21872-c4ff-11ea-816c-9600004e79cc"><br/>
+	<b>Input vector </b> <input type="text" name="cfid" id="input-vector" value="[[1,2,3,4,5]]"><br/>
+	<button type="button" id="run-button">Run task</button>
+	<div id="result"></div>
+</p>
+
+<p>
+	Working: 27d21872-c4ff-11ea-816c-9600004e79cc, [[1,2,3,4,5]] <br />
+	Not working: e871d8e5-b2e2-11ea-a47d-9600004e79cc, [[2,5]]  (provides remote result)
+</p>
+
+<script src="sclbl-webnode.js"></script> <!-- provides sclblRuntime object -->
+<script>
+
+
+// When button is pushed:
+document.getElementById("run-button").onclick = function(){
+	
+	// Set task uptions:
+	sclblRuntime.options({
+		"cfid": document.getElementById("compute-function-id").value,  
+		"location": "local",  
+		"strict": false,  
+		"inputType": "string",
+	});
+
+	let inputData = document.getElementById("input-vector").value;
+
+	// Run the task
+	sclblRuntime.run(inputData).then(function(response) {
+		document.getElementById("result").innerHTML = "Compute result is: " + response;
+	}, function(error) {
+		document.getElementById("result").innerHTML = "An error occurred (see console for more details): " + error;
+	});
+
+}
+
+
+</script>
+
+</body>
+</html>
+
