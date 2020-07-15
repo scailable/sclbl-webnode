@@ -9,33 +9,61 @@
 
 <h1>Scailable webnode example</h1>
 
-<p>Simple demo page for running a Scailable task either locally (in the browser), or remotely. See <a href="https://github.com/scailable/sclbl-webnode">https://github.com/scailable/sclbl-webnode</a> for details.</p>
+<p>Demo page for running a Scailable task either locally (in the browser), or remotely. See <a href="https://github.com/scailable/sclbl-webnode">https://github.com/scailable/sclbl-webnode</a> and the source code of this page for further details.</p>
 
 <p>
 	<b>Compute-function ID: </b> <input type="text" name="cfid" id="compute-function-id" value="27d21872-c4ff-11ea-816c-9600004e79cc"><br/>
-	<b>Input vector </b> <input type="text" name="cfid" id="input-vector" value="[[1,2,3,4,5]]"><br/>
+	<b>Input vector: </b> <input type="text" name="cfid" id="input-vector" value="[[1,2,3,4,5]]"><br/>
+	<b>Location: </b>
+	<select id="location-select">
+		<option value="local">Local (run in browser)</option>
+		<option value="remote">Remote (run as a REST service)</option>
+	</select>
+	<br />	
 	<button type="button" id="run-button">Run task</button>
 	<div id="result"></div>
 </p>
 
 <p>
-	Working: 27d21872-c4ff-11ea-816c-9600004e79cc, [[1,2,3,4,5]] <br />
-	Not working: e871d8e5-b2e2-11ea-a47d-9600004e79cc, [[2,5]]  (provides remote result)
+	Examples:
+	<ul>
+		<li>Integer sum: 
+			<ul>
+				<li><b>Compute-function ID::</b> 27d21872-c4ff-11ea-816c-9600004e79cc </li>
+				<li><b>Input vector:</b> <code>[[1,2,3,4,5]]</code></li> 
+			</ul>
+		</li>
+		<li>Linear regression:
+			<ul>
+				<li><b>Compute-function ID::</b> e871d8e5-b2e2-11ea-a47d-9600004e79cc </li>
+				<li><b>Input vector:</b> <code>[[2,5]]</code></li> 
+				<li>See our <a href="https://github.com/scailable/sclbl-tutorials/blob/master/sclbl-101-getting-started/README.md" target="_blank">getting started tutorial</a>.</li>
+			</ul> 
+		</li>
+	</ul>
+	Please see your web console for debug output. 
 </p>
 
-<script src="sclbl-webnode.js"></script> <!-- provides sclblRuntime object -->
+<script src="min/sclbl-webnode-min.js"></script> <!-- provides sclblRuntime object -->
 <script>
-
 
 // When button is pushed:
 document.getElementById("run-button").onclick = function(){
+
+	document.getElementById("result").innerHTML = "";
+
+	// Get value selection:
+	var select = document.getElementById("location-select");
+	var location = select.options[select.selectedIndex].value;
 	
 	// Set task uptions:
 	sclblRuntime.options({
-		"cfid": document.getElementById("compute-function-id").value,  
-		"location": "local",  
-		"strict": false,  
-		"inputType": "string",
+		"cfid": document.getElementById("compute-function-id").value, // Required
+		"location": location,  // Optional, default local
+		"strict": false,  // Optional, default false
+		"inputType": "string", // Optional, default string
+		"outputType": "numVec", // Optional default string
+		"debug": false, // Optional, default false, set to true for extensive logging
 	});
 
 	let inputData = document.getElementById("input-vector").value;
@@ -48,7 +76,6 @@ document.getElementById("run-button").onclick = function(){
 	});
 
 }
-
 
 </script>
 
