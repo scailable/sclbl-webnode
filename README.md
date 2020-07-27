@@ -16,7 +16,7 @@ Next, we set the desired settings:
 // Set task uptions:
 sclblRuntime.options({
 	"cfid": "XXXX-XXX-XXXX", // Required; the cfid of the task
-	"location": location,  // Optional, default local
+	"location": "local",  // Optional, default local
 	"strict": false,  // Optional, default false implying fallback to remote
 	"inputType": "string", // Optional, default string (alternatively: "numVec", "exact")
 	"outputType": "resultNumVec", // Optional default resultString (alternatively: "numVec", "exact")
