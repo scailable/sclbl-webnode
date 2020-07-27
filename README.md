@@ -42,3 +42,5 @@ where `inputData` is the desired input to the task.
 
 > See [example.html](example.html) for a working example.
 > See [source/sclbl-webnode.js](source/sclbl-webnode.js) for the (annotated) vanilly JavaScript source code. Feel free to make changes.
+
+> See our [Using the Scailable Webnode](https://github.com/scailable/sclbl-tutorials/tree/master/sclbl-using-the-webnode) tutorial for a fully annotated example.
