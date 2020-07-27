@@ -1,6 +1,6 @@
 # sclbl-webnode
 
-> V0.01, 15-07-2020 (not yet stable, but mostly running)
+> V0.01, 27-07-2020
 > By: Scailable Core team
 
 The `sclbl-webnode` allows users to run Scailable tasks (WASIs) both locally (in the browser) or remotely (using our REST API). Usage is relatively simple. First one includes the js library:
