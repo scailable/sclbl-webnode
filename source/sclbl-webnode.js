@@ -15,8 +15,6 @@ let sclblRuntime = (function () {
     /* Instantiate */
     let sclbl = {};
     sclbl.cf = null;
-    sclbl.localModule = null;
-    sclbl.localModuleCfid = "";
 
     /* Constants */
     const CDN_LOCATION = "https://cdn.sclbl.net:8000/file/";  // location of the CDN for retrieving the .wasm files
@@ -350,20 +348,17 @@ let sclblRuntime = (function () {
      */
     sclbl.import = async function (cfid, polyFill) {
 
-        // if no cached version, retrieve and compile the module
-        if(sclbl.localModuleCfid !==cfid || sclbl.localModule === null) {
+        // basic vars
+        let moduleName = CDN_LOCATION + cfid + ".wasm";
+        let module;
 
-            // basic vars
-            let moduleName = CDN_LOCATION + cfid + ".wasm";
-
-            if (WebAssembly.compileStreaming) {
-                sclbl.localModule = await WebAssembly.compileStreaming(fetch(moduleName));
-            } else {
-                const response = await fetch(moduleName);
-                const buffer = await response.arrayBuffer();
-                sclbl.localModule = await WebAssembly.compile(buffer);
-            }
-            sclbl.localModuleCfid=cfid;
+        // compile the module
+        if (WebAssembly.compileStreaming) {
+            module = await WebAssembly.compileStreaming(fetch(moduleName));
+        } else {
+            const response = await fetch(moduleName);
+            const buffer = await response.arrayBuffer();
+            module = await WebAssembly.compile(buffer);
         }
 
         // initialize memory
@@ -374,12 +369,12 @@ let sclblRuntime = (function () {
         // assign an empty environment and the initialized memory to imported module
         let moduleImports = {env: {}, js: {mem: memory}};
         // retrieve namespace from downloaded WASM module; for example, wasi_snapshot_preview1
-        const nspace = sclbl.getImportNamespace(sclbl.localModule);
+        const nspace = sclbl.getImportNamespace(module);
         // and assign polyfill to namespace
         moduleImports[nspace] = polyFill;
 
         // instantiate
-        const instance = await WebAssembly.instantiate(sclbl.localModule, moduleImports);
+        const instance = await WebAssembly.instantiate(module, moduleImports);
         polyFill.setModuleInstance(instance);
 
         // run start
@@ -535,19 +530,19 @@ let sclblRuntime = (function () {
             const bufferBytes = [];
 
             function getiovs(iovs, iovsLen) {
-                return Array.from({length: iovsLen}, function (_, i) {
+                const buffers = Array.from({length: iovsLen}, function (_, i) {
                     const ptr = iovs + i * 8;
                     const buf = view.getUint32(ptr, !0);
                     const bufLen = view.getUint32(ptr + 4, !0);
                     return new Uint8Array(moduleInstanceExports.memory.buffer, buf, bufLen);
                 });
+                return buffers;
             }
 
             let buffers = getiovs(iovs, iovsLen);
 
             function writev(iov) {
-                let b
-                for (b = 0; b < iov.byteLength; b++) {
+                for (let b = 0; b < iov.byteLength; b++) {
                     bufferBytes.push(iov[b]);
                 }
                 written += b;
@@ -579,6 +574,11 @@ let sclblRuntime = (function () {
 
         function fd_seek(fd, offset, whence, newOffsetPtr) {
             sclbl.log("Call to WASI.fd_seek()");
+        }
+
+        function fd_close(fd) {
+            sclbl.log("Call to WASI.fd_close()");
+            return WASI_ENOSYS;
         }
 
         // added stubs
@@ -644,14 +644,17 @@ let sclblRuntime = (function () {
         if (typeof str !== 'string') return false;
         try {
             result = JSON.parse(str);
-            if ("input" in result) {
-                return false;
-            }
             const type = Object.prototype.toString.call(result);
-            return type === '[object Object]'  || type === '[object Array]';
+            return type === '[object Object]'
+                || type === '[object Array]';
         } catch (err) {
             return false;
         }
+        // check if the parse JSON contains an "input" key
+        if ("input" in str) {
+            return false;
+        }
+        return true
     };
 
     /*
